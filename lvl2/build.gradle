@@ -1,0 +1,50 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.bmuschko:gradle-docker-plugin:3.2.3'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'com.bmuschko.docker-java-application'
+apply plugin: 'com.bmuschko.docker-remote-api'
+
+import com.bmuschko.gradle.docker.tasks.container.*
+import com.bmuschko.gradle.docker.tasks.image.*
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+group = 'org.examples.java'
+version = '1.0-SNAPSHOT'
+
+mainClassName = "org.examples.java.App"
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
+
+docker {
+    javaApplication {
+        baseImage = 'openjdk:8'
+        tag = 'java-app:gradle'
+    }
+}
+task createContainer(type: DockerCreateContainer, dependsOn: dockerBuildImage) {
+    targetImageId { dockerBuildImage.getImageId() }
+}
+task startContainer(type: DockerStartContainer, dependsOn: createContainer) {
+    targetContainerId { createContainer.getContainerId() }
+}
+
+task logContainer(type: DockerLogsContainer, dependsOn: startContainer) {
+    targetContainerId { startContainer.getContainerId() }
+    follow = true
+    tailAll = true
+    onNext { message ->
+        logger.quiet message.toString() // each log message from the container will be passed as it's made available
+    }
+}
