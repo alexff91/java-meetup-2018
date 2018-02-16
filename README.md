@@ -1,4 +1,4 @@
-# java-meetup-2017
+# java-meetup-2018
 
 ## Level 1:
 https://www.youtube.com/watch?v=yHLAaA4gPxw
